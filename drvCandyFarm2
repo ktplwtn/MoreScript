@@ -10,12 +10,14 @@ end
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
 local candyFolder = workspace:WaitForChild("CollectibleSpawner")
 
--- 📌 1. ตั้งค่าเริ่มต้นให้เป็น false (ปิดสนิท ยังไม่ทำงานตอนรัน)
+-- 📌 1. ตั้งค่าสถานะเริ่มต้น
 _G.AutoFarmActive = false
+_G.AntiAfkActive = true -- เปิดระบบ Anti-AFK เริ่มต้น
 
 -- 📌 รวมรายการพิกัดสถานที่ต่างๆ ของอ้น
 local locations = {
@@ -39,7 +41,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 120) -- 📌 กรอบดำขนาดพอดีเป๊ะ ไม่ล้น
+mainFrame.Size = UDim2.new(0, 220, 0, 175) -- 📌 ขยายความสูงกรอบให้พอดีกับปุ่ม Anti-AFK
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -60,14 +62,14 @@ titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
--- 📌 ปุ่มสถานะ (OFF / ON)
+-- 📌 ปุ่มสถานะฟาร์ม (OFF / ON)
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.9, 0, 0, 45)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 32)
+toggleButton.Size = UDim2.new(0.9, 0, 0, 42)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 30)
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 14
+toggleButton.TextSize = 13
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Parent = mainFrame
 
@@ -75,10 +77,25 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
 
--- 📌 ข้อความ insert - show / hide UI ไว้ด้านล่างแบบพอดี
+-- 🛡️ ปุ่มสถานะ Anti-AFK (เปิด/ปิดได้)
+local afkButton = Instance.new("TextButton")
+afkButton.Size = UDim2.new(0.9, 0, 0, 35)
+afkButton.Position = UDim2.new(0.05, 0, 0, 78)
+afkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- เริ่มต้นเป็นสีเขียว (เปิดอยู่)
+afkButton.Text = "Anti-AFK: ON 🟢"
+afkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkButton.TextSize = 12
+afkButton.Font = Enum.Font.GothamBold
+afkButton.Parent = mainFrame
+
+local afkCorner = Instance.new("UICorner")
+afkCorner.CornerRadius = UDim.new(0, 6)
+afkCorner.Parent = afkButton
+
+-- 📌 ข้อความ insert - show / hide UI ไว้ด้านล่างสุด
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0, 20)
-subLabel.Position = UDim2.new(0, 0, 0, 85)
+subLabel.Position = UDim2.new(0, 0, 0, 120)
 subLabel.BackgroundTransparency = 1
 subLabel.Text = "insert - show / hide UI"
 subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -86,7 +103,7 @@ subLabel.TextSize = 11
 subLabel.Font = Enum.Font.GothamBold
 subLabel.Parent = mainFrame
 
--- 💬 ข้อความแจ้งเตือนสถานะกลางจอตอนกด Insert
+-- 💬 ข้อความแจ้งเตือนสถานะกลางจอตอนกดปุ่ม
 local notifyLabel = Instance.new("TextLabel")
 notifyLabel.Size = UDim2.new(0, 240, 0, 35)
 notifyLabel.Position = UDim2.new(0.5, -120, 0, 15)
@@ -155,7 +172,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- 📌 ปุ่มกดสลับสถานะ
+-- 📌 ปุ่มกดสลับสถานะฟาร์ม
 toggleButton.MouseButton1Click:Connect(function()
     _G.AutoFarmActive = not _G.AutoFarmActive
     if _G.AutoFarmActive then
@@ -166,6 +183,20 @@ toggleButton.MouseButton1Click:Connect(function()
         toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
         toggleButton.Text = "Status: OFF 🔴"
         showNotification("🛑 Auto Farm Stopped!")
+    end
+end)
+
+-- 📌 ปุ่มกดสลับสถานะ Anti-AFK
+afkButton.MouseButton1Click:Connect(function()
+    _G.AntiAfkActive = not _G.AntiAfkActive
+    if _G.AntiAfkActive then
+        afkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        afkButton.Text = "Anti-AFK: ON 🟢"
+        showNotification("🛡️ Anti-AFK Enabled")
+    else
+        afkButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        afkButton.Text = "Anti-AFK: OFF 🔴"
+        showNotification("⚠️ Anti-AFK Disabled")
     end
 end)
 
@@ -215,7 +246,7 @@ local function farmAllCandyAtLocation(targetCFrame)
     end
 end
 
--- 🚀 ลูปหลัก
+-- 🚀 ลูปหลักการฟาร์ม
 task.spawn(function()
     while true do
         if _G.AutoFarmActive then
@@ -229,10 +260,16 @@ task.spawn(function()
     end
 end)
 
--- 🛡️ ระบบป้องกัน AFK ไม่ให้โดนเตะออกจากเกมเวลารันฟาร์มทิ้งไว้
-local vu = game:GetService("VirtualUser")
-game:GetService("Players").LocalPlayer.Idled:Connect(function()
-    vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+-- 🛡️ ลูปทำงานระบบ Anti-AFK (เช็กสถานะเปิด/ปิดจากปุ่ม)
+task.spawn(function()
+    while true do
+        task.wait(60) -- ทำงานทุก ๆ 1 นาที
+        if _G.AntiAfkActive then
+            pcall(function()
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+                task.wait(0.1)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+            end)
+        end
+    end
 end)
