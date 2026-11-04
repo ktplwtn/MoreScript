@@ -41,7 +41,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 215) -- 📌 ขยายความสูงเพิ่มขึ้นให้มีพื้นที่ด้านล่างเหลือเยอะขึ้น ชัวร์ว่าไม่ล้น
+mainFrame.Size = UDim2.new(0, 220, 0, 175) -- 📌 ปรับขนาดกรอบให้กะทัดรัดและสมส่วน
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -53,8 +53,8 @@ corner.Parent = mainFrame
 
 -- 📌 หัวข้อหลักด้านบน
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 25)
-titleLabel.Position = UDim2.new(0, 0, 0, 10)
+titleLabel.Size = UDim2.new(1, 0, 0, 24)
+titleLabel.Position = UDim2.new(0, 0, 0, 6)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "🍬 Driving Empire Farm"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -62,14 +62,14 @@ titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
--- 📌 ปุ่มสถานะฟาร์ม (OFF / ON)
+-- 📌 ปุ่มสถานะฟาร์ม (OFF / ON) - ปรับความสูงให้พอดี
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.9, 0, 0, 42)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 40)
+toggleButton.Size = UDim2.new(0.9, 0, 0, 35)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 34)
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 13
+toggleButton.TextSize = 12
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Parent = mainFrame
 
@@ -77,11 +77,11 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
 
--- 🛡️ ปุ่มสถานะ Anti-AFK (เปิด/ปิดได้)
+-- 🛡️ ปุ่มสถานะ Anti-AFK (เปิด/ปิดได้) - ปรับความสูงให้พอดี
 local afkButton = Instance.new("TextButton")
-afkButton.Size = UDim2.new(0.9, 0, 0, 38)
-afkButton.Position = UDim2.new(0.05, 0, 0, 88)
-afkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- เริ่มต้นเป็นสีเขียว (เปิดอยู่)
+afkButton.Size = UDim2.new(0.9, 0, 0, 35)
+afkButton.Position = UDim2.new(0.05, 0, 0, 75)
+afkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
 afkButton.Text = "Anti-AFK: ON 🟢"
 afkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 afkButton.TextSize = 12
@@ -92,10 +92,10 @@ local afkCorner = Instance.new("UICorner")
 afkCorner.CornerRadius = UDim.new(0, 6)
 afkCorner.Parent = afkButton
 
--- 📌 ข้อความ insert - show / hide UI ดันลงมาให้อยู่ตรงกลางระหว่างปุ่มล่างกับขอบล่างพอดีสวยงาม
+-- 📌 ข้อความ insert - show / hide UI ขยับขึ้นมาอยู่ตรงกลางพื้นที่ว่างด้านล่างพอดี ไม่ล้นขอบแน่นอน
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0, 20)
-subLabel.Position = UDim2.new(0, 0, 0, 142)
+subLabel.Position = UDim2.new(0, 0, 0, 125)
 subLabel.BackgroundTransparency = 1
 subLabel.Text = "insert - show / hide UI"
 subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
