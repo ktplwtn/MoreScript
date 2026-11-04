@@ -1,5 +1,17 @@
-local Players = game:GetService("Players")
+-- 🧹 ระบบเตะ/ทำลายสคริปต์และ UI ตัวเก่าทิ้งก่อนรันใหม่ (ไม่ให้ซ้อนกัน)
+if _G.CandyFarmConnection then
+    pcall(function()
+        _G.CandyFarmConnection:Disconnect()
+    end)
+end
+_G.AutoFarmActive = false
+
 local CoreGui = game:GetService("CoreGui")
+if CoreGui:FindFirstChild("CandyFarmUI") then
+    CoreGui.CandyFarmUI:Destroy()
+end
+
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
@@ -82,14 +94,14 @@ local function showNotification(text)
     end)
 end
 
--- ⌨️ กดปุ่ม Insert บนคีย์บอร์ดเพื่อซ่อน/แสดง UI
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.Insert then
+-- ⌨️ กดปุ่ม Insert หรือ RightControl เพื่อซ่อน/แสดง UI
+_G.CandyFarmConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Insert or input.KeyCode == Enum.KeyCode.RightControl then
         mainFrame.Visible = not mainFrame.Visible
         if mainFrame.Visible then
-            showNotification("🖥️ UI Shown (Inserted)")
+            showNotification("🖥️ UI Shown")
         else
-            showNotification("🙈 UI Hidden (Inserted)")
+            showNotification("🙈 UI Hidden")
         end
     end
 end)
@@ -134,7 +146,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- 📌 ปุ่มกดสลับสถานะ (กดทีแรกเปลี่ยนเป็น ON และเริ่มทำงานทันที)
+-- 📌 ปุ่มกดสลับสถานะ
 toggleButton.MouseButton1Click:Connect(function()
     _G.AutoFarmActive = not _G.AutoFarmActive
     if _G.AutoFarmActive then
