@@ -1,0 +1,163 @@
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local candyFolder = workspace:WaitForChild("CollectibleSpawner")
+
+-- 📌 ตัวแปรควบคุมเปิด/ปิด (เริ่มทำงานทันที)
+_G.AutoFarmActive = false
+
+-- 📌 รวมรายการพิกัดสถานที่ต่างๆ ของอ้น (โค้ดเดิมแท้ๆ)
+local locations = {
+    Vector3.new(125, 50, -430),    -- จุดที่ 1 (Dealership / จุดหลัก)
+    Vector3.new(850, 50, 1200),    -- จุดที่ 2 (โซนเมืองตะวันออก)
+    Vector3.new(-500, 50, -900),   -- จุดที่ 3 (โซนเมืองตะวันตก)
+    
+    Vector3.new(1420, 50, 230),    -- จุดที่ 4 (โซนทางหลวงขวา)
+    Vector3.new(-1650, 50, 840),   -- จุดที่ 5 (โซนรอบนอกซ้าย)
+    Vector3.new(310, 50, 1950),    -- จุดที่ 6 (โซนหน้ายาว)
+    
+    Vector3.new(-920, 50, -1780),  -- จุดที่ 7 (โซนหลังซ้าย)
+    Vector3.new(1890, 50, -1250),  -- จุดที่ 8 (โซนมุมขวาไกล)
+    Vector3.new(-120, 50, 2450),   -- จุดที่ 9 (โซนเหนือสุด)
+}
+
+-- 🛠️ สร้าง UI เปิด/ปิด และระบบลากที่ไม่กวนปุ่ม
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CandyFarmUI"
+screenGui.Parent = CoreGui
+screenGui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 220, 0, 110)
+mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 35)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "🍬 DRV Candy Farm 🍬"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 14
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = mainFrame
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.9, 0, 0, 50)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 45)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+toggleButton.Text = "Status: ON 🟢"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 14
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = toggleButton
+
+-- 🖱️ ระบบลาก UI
+local dragging = false
+local mousePos, framePos
+
+titleLabel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        mousePos = input.Position
+        framePos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - mousePos
+        mainFrame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ปุ่มเปิด/ปิด
+toggleButton.MouseButton1Click:Connect(function()
+    _G.AutoFarmActive = not _G.AutoFarmActive
+    if _G.AutoFarmActive then
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        toggleButton.Text = "Status: ON 🟢"
+    else
+        toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        toggleButton.Text = "Status: OFF 🔴"
+    end
+end)
+
+-- ⚙️ ฟังก์ชันเช็กตัวละคร
+local function getRoot()
+    local char = player.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+-- 📌 ฟังก์ชันฟาร์มแคนดี้ (เพิ่มระยะความสูงตอนวาร์ปให้ปล่อยตัวตกลงมาก่อน)
+local function farmAllCandyAtLocation(targetCFrame)
+    local root = getRoot()
+    if not root then return end
+
+    -- วาร์ปมาถึงพื้นที่ (สูงขึ้นเล็กน้อยเผื่อจังหวะโหลดแมพ)
+    root.CFrame = targetCFrame + Vector3.new(0, 8, 0)
+    task.wait(1)
+
+    while _G.AutoFarmActive do
+        local foundCandy = false
+        root = getRoot()
+        if not root then break end
+
+        for _, obj in ipairs(candyFolder:GetDescendants()) do
+            if not _G.AutoFarmActive then break end
+            
+            if obj:IsA("MeshPart") and obj.Parent then
+                foundCandy = true
+                
+                -- 🪂 ปรับจุดวาร์ปให้อยู่เหนือตัวแคนดี้สูงขึ้น (เช่น +8 Studs) เพื่อให้มีจังหวะตกลงมาเก็บ
+                root.CFrame = obj.CFrame + Vector3.new(0, 8, 0)
+                task.wait(0.08) -- หน่วงเวลาสั้นๆ ให้ตัวละครร่วงลงมาแตะแคนดี้พอดี
+                
+                local timeout = 0
+                repeat
+                    task.wait(0.05)
+                    timeout = timeout + 0.05
+                until not obj.Parent or timeout >= 0.5 or not _G.AutoFarmActive
+                
+                task.wait(0.05)
+            end
+        end
+
+        if not foundCandy or not _G.AutoFarmActive then
+            break
+        end
+
+        task.wait(0.5)
+    end
+end
+
+-- 🚀 ลูปหลัก: สลับวาร์ปไปตามสถานที่ต่างๆ
+task.spawn(function()
+    while true do
+        if _G.AutoFarmActive then
+            for i, pos in ipairs(locations) do
+                if not _G.AutoFarmActive then break end
+                farmAllCandyAtLocation(CFrame.new(pos))
+                task.wait(1)
+            end
+        end
+        task.wait(0.5)
+    end
+end)
