@@ -5,7 +5,7 @@ local player = Players.LocalPlayer
 
 local candyFolder = workspace:WaitForChild("CollectibleSpawner")
 
--- 📌 กำหนดค่าเริ่มต้นเป็น false (ปิด)
+-- 📌 1. ตั้งค่าเริ่มต้นให้เป็น false (ปิดสนิท ยังไม่ทำงานตอนรัน)
 _G.AutoFarmActive = false
 
 -- 📌 รวมรายการพิกัดสถานที่ต่างๆ ของอ้น
@@ -52,7 +52,7 @@ titleLabel.Parent = mainFrame
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 50)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 45)
--- 📌 บังคับค่าเริ่มต้นให้เป็นสีแดง (OFF) ตั้งแต่สร้างปุ่ม
+-- 📌 บังคับค่าเริ่มต้นหน้าตาปุ่มเป็นสีแดง (OFF) 100% ตั้งแต่แรก
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -89,7 +89,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- ปุ่มเปิด/ปิด (กดครั้งแรกจะเปลี่ยนเป็น ON และรันทันที)
+-- 📌 ปุ่มกดสลับสถานะ (กดทีแรกเปลี่ยนเป็น ON และเริ่มทำงานทันที)
 toggleButton.MouseButton1Click:Connect(function()
     _G.AutoFarmActive = not _G.AutoFarmActive
     if _G.AutoFarmActive then
@@ -147,7 +147,7 @@ local function farmAllCandyAtLocation(targetCFrame)
     end
 end
 
--- 🚀 ลูปหลัก
+-- 🚀 ลูปหลัก (รอจนกว่า _G.AutoFarmActive จะถูกเปลี่ยนเป็น true ถึงจะเริ่มวิ่ง)
 task.spawn(function()
     while true do
         if _G.AutoFarmActive then
@@ -157,6 +157,6 @@ task.spawn(function()
                 task.wait(1)
             end
         end
-        task.wait(0.5)
+        task.wait(0.5) -- เช็กสถานะทุกๆ ครึ่งวิ ถ้ายังเป็น false จะวนรอตรงนี้แบบไม่ไปไหน
     end
 end)
