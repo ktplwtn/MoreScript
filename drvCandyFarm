@@ -41,18 +41,91 @@ corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 35)
+titleLabel.Size = UDim2.new(1, -35, 0, 35)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "🍬🍬 drv Candy Farm 🍬🍬"
+titleLabel.Text = "🍬 Driving Empire Farm"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.TextSize = 14
 titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = mainFrame
+
+-- 🗕 ปุ่มซ่อน UI (Minimize)
+local hideButton = Instance.new("TextButton")
+hideButton.Size = UDim2.new(0, 25, 0, 25)
+hideButton.Position = UDim2.new(1, -30, 0, 5)
+hideButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+hideButton.Text = "-"
+hideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+hideButton.TextSize = 16
+hideButton.Font = Enum.Font.GothamBold
+hideButton.Parent = mainFrame
+
+local hideCorner = Instance.new("UICorner")
+hideCorner.CornerRadius = UDim.new(0, 4)
+hideCorner.Parent = hideButton
+
+-- 🗖 ปุ่มเปิด UI กลับมา (Floating Open Button เล็กๆ ที่มุมจอตอนซ่อน)
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0, 45, 0, 45)
+openButton.Position = UDim2.new(0, 10, 0.1, 0)
+openButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+openButton.Text = "🍬"
+openButton.TextSize = 22
+openButton.Visible = false -- ซ่อนไว้ก่อนตอนแรก
+openButton.Parent = screenGui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = openButton
+
+-- 💬 ข้อความแจ้งเตือนสถานะการซ่อน/แสดง
+local notifyLabel = Instance.new("TextLabel")
+notifyLabel.Size = UDim2.new(0, 200, 0, 30)
+notifyLabel.Position = UDim2.new(0.5, -100, 0, 10)
+notifyLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+notifyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+notifyLabel.TextSize = 13
+notifyLabel.Font = Enum.Font.GothamBold
+notifyLabel.TextTransparency = 1
+notifyLabel.BackgroundTransparency = 1
+notifyLabel.Parent = screenGui
+
+local function showNotification(text)
+    notifyLabel.Text = text
+    notifyLabel.TextTransparency = 0
+    notifyLabel.BackgroundTransparency = 0.2
+    task.spawn(function()
+        task.wait(1.5)
+        for i = 0, 1, 0.1 do
+            notifyLabel.TextTransparency = i
+            notifyLabel.BackgroundTransparency = 0.2 + (i * 0.8)
+            task.wait(0.05)
+        end
+        notifyLabel.TextTransparency = 1
+        notifyLabel.BackgroundTransparency = 1
+    end)
+end
+
+-- กดปุ่มซ่อน UI หลัก
+hideButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    openButton.Visible = true
+    showNotification("UI Hidden! Click the candy icon to reopen.")
+end)
+
+-- กดปุ่มเปิด UI หลักกลับมา
+openButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    openButton.Visible = false
+    showNotification("UI Restored!")
+end)
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 50)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 45)
--- 📌 บังคับค่าเริ่มต้นหน้าตาปุ่มเป็นสีแดง (OFF) 100% ตั้งแต่แรก
+-- 📌 บังคับค่าเริ่มต้นหน้าตาปุ่มเป็นสีแดง (OFF) ตั้งแต่แรก
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -64,7 +137,7 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
 
--- 🖱️ ระบบลาก UI
+-- 🖱️ ระบบลาก UI หลัก
 local dragging = false
 local mousePos, framePos
 
@@ -84,8 +157,34 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        print(input.Position)
         local delta = input.Position - mousePos
         mainFrame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
+
+-- 🖱️ ระบบลากปุ่มเปิดจอย่อ (Open Button)
+local draggingOpen = false
+local openMousePos, openFramePos
+
+openButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggingOpen = true
+        openMousePos = input.Position
+        openFramePos = openButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                draggingOpen = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if draggingOpen and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - openMousePos
+        openButton.Position = UDim2.new(openFramePos.X.Scale, openFramePos.X.Offset + delta.X, openFramePos.Y.Scale, openFramePos.Y.Offset + delta.Y)
     end
 end)
 
@@ -95,9 +194,11 @@ toggleButton.MouseButton1Click:Connect(function()
     if _G.AutoFarmActive then
         toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
         toggleButton.Text = "Status: ON 🟢"
+        showNotification("Auto Farm Started! 🚀")
     else
         toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
         toggleButton.Text = "Status: OFF 🔴"
+        showNotification("Auto Farm Stopped! 🛑")
     end
 end)
 
@@ -147,7 +248,7 @@ local function farmAllCandyAtLocation(targetCFrame)
     end
 end
 
--- 🚀 ลูปหลัก (รอจนกว่า _G.AutoFarmActive จะถูกเปลี่ยนเป็น true ถึงจะเริ่มวิ่ง)
+-- 🚀 ลูปหลัก
 task.spawn(function()
     while true do
         if _G.AutoFarmActive then
@@ -157,6 +258,6 @@ task.spawn(function()
                 task.wait(1)
             end
         end
-        task.wait(0.5) -- เช็กสถานะทุกๆ ครึ่งวิ ถ้ายังเป็น false จะวนรอตรงนี้แบบไม่ไปไหน
+        task.wait(0.5)
     end
 end)
