@@ -1,14 +1,23 @@
-local Players = game:GetService("Players")
+-- 🧹 ระบบกวาดล้าง UI เก่าทุกตัวใน CoreGui ให้เกลี้ยงก่อนสร้างใหม่
 local CoreGui = game:GetService("CoreGui")
+for _, gui in ipairs(CoreGui:GetChildren()) do
+    if gui.Name == "CandyFarmUI" then
+        pcall(function()
+            gui:Destroy()
+        end)
+    end
+end
+
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local candyFolder = workspace:WaitForChild("CollectibleSpawner")
 
--- 📌 ตัวแปรควบคุมเปิด/ปิด (เริ่มทำงานทันที)
+-- 📌 1. ตั้งค่าเริ่มต้นให้เป็น false (ปิดสนิท ยังไม่ทำงานตอนรัน)
 _G.AutoFarmActive = false
 
--- 📌 รวมรายการพิกัดสถานที่ต่างๆ ของอ้น (โค้ดเดิมแท้ๆ)
+-- 📌 รวมรายการพิกัดสถานที่ต่างๆ ของอ้น
 local locations = {
     Vector3.new(125, 50, -430),    -- จุดที่ 1 (Dealership / จุดหลัก)
     Vector3.new(850, 50, 1200),    -- จุดที่ 2 (โซนเมืองตะวันออก)
@@ -30,7 +39,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 110)
+mainFrame.Size = UDim2.new(0, 220, 0, 120) -- 📌 กรอบดำขนาดพอดีเป๊ะ ไม่ล้น
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -40,20 +49,23 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
+-- 📌 หัวข้อหลักด้านบน
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 35)
+titleLabel.Size = UDim2.new(1, 0, 0, 22)
+titleLabel.Position = UDim2.new(0, 0, 0, 6)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "🍬 DRV Candy Farm 🍬"
+titleLabel.Text = "🍬 Driving Empire Farm"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 14
+titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
+-- 📌 ปุ่มสถานะ (OFF / ON)
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.9, 0, 0, 50)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 45)
-toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-toggleButton.Text = "Status: ON 🟢"
+toggleButton.Size = UDim2.new(0.9, 0, 0, 45)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 32)
+toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.TextSize = 14
 toggleButton.Font = Enum.Font.GothamBold
@@ -63,7 +75,62 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
 
--- 🖱️ ระบบลาก UI
+-- 📌 ข้อความ insert - show / hide UI ไว้ด้านล่างแบบพอดี
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(1, 0, 0, 20)
+subLabel.Position = UDim2.new(0, 0, 0, 85)
+subLabel.BackgroundTransparency = 1
+subLabel.Text = "insert - show / hide UI"
+subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+subLabel.TextSize = 11
+subLabel.Font = Enum.Font.GothamBold
+subLabel.Parent = mainFrame
+
+-- 💬 ข้อความแจ้งเตือนสถานะกลางจอตอนกด Insert
+local notifyLabel = Instance.new("TextLabel")
+notifyLabel.Size = UDim2.new(0, 240, 0, 35)
+notifyLabel.Position = UDim2.new(0.5, -120, 0, 15)
+notifyLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+notifyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+notifyLabel.TextSize = 13
+notifyLabel.Font = Enum.Font.GothamBold
+notifyLabel.TextTransparency = 1
+notifyLabel.BackgroundTransparency = 1
+notifyLabel.Parent = screenGui
+
+local notifyCorner = Instance.new("UICorner")
+notifyCorner.CornerRadius = UDim.new(0, 6)
+notifyCorner.Parent = notifyLabel
+
+local function showNotification(text)
+    notifyLabel.Text = text
+    notifyLabel.TextTransparency = 0
+    notifyLabel.BackgroundTransparency = 0.2
+    task.spawn(function()
+        task.wait(1.5)
+        for i = 0, 1, 0.1 do
+            notifyLabel.TextTransparency = i
+            notifyLabel.BackgroundTransparency = 0.2 + (i * 0.8)
+            task.wait(0.05)
+        end
+        notifyLabel.TextTransparency = 1
+        notifyLabel.BackgroundTransparency = 1
+    end)
+end
+
+-- ⌨️ กดปุ่ม Insert หรือ RightControl เพื่อซ่อน/แสดง UI
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Insert or input.KeyCode == Enum.KeyCode.RightControl then
+        mainFrame.Visible = not mainFrame.Visible
+        if mainFrame.Visible then
+            showNotification("🖥️ UI Shown")
+        else
+            showNotification("🙈 UI Hidden")
+        end
+    end
+end)
+
+-- 🖱️ ระบบลาก UI หลัก
 local dragging = false
 local mousePos, framePos
 
@@ -88,15 +155,17 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- ปุ่มเปิด/ปิด
+-- 📌 ปุ่มกดสลับสถานะ
 toggleButton.MouseButton1Click:Connect(function()
     _G.AutoFarmActive = not _G.AutoFarmActive
     if _G.AutoFarmActive then
         toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
         toggleButton.Text = "Status: ON 🟢"
+        showNotification("🚀 Auto Farm Started!")
     else
         toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
         toggleButton.Text = "Status: OFF 🔴"
+        showNotification("🛑 Auto Farm Stopped!")
     end
 end)
 
@@ -106,12 +175,11 @@ local function getRoot()
     return char and char:FindFirstChild("HumanoidRootPart")
 end
 
--- 📌 ฟังก์ชันฟาร์มแคนดี้ (เพิ่มระยะความสูงตอนวาร์ปให้ปล่อยตัวตกลงมาก่อน)
+-- 📌 ฟังก์ชันฟาร์มแคนดี้
 local function farmAllCandyAtLocation(targetCFrame)
     local root = getRoot()
     if not root then return end
 
-    -- วาร์ปมาถึงพื้นที่ (สูงขึ้นเล็กน้อยเผื่อจังหวะโหลดแมพ)
     root.CFrame = targetCFrame + Vector3.new(0, 8, 0)
     task.wait(1)
 
@@ -126,9 +194,8 @@ local function farmAllCandyAtLocation(targetCFrame)
             if obj:IsA("MeshPart") and obj.Parent then
                 foundCandy = true
                 
-                -- 🪂 ปรับจุดวาร์ปให้อยู่เหนือตัวแคนดี้สูงขึ้น (เช่น +8 Studs) เพื่อให้มีจังหวะตกลงมาเก็บ
                 root.CFrame = obj.CFrame + Vector3.new(0, 8, 0)
-                task.wait(0.08) -- หน่วงเวลาสั้นๆ ให้ตัวละครร่วงลงมาแตะแคนดี้พอดี
+                task.wait(0.08)
                 
                 local timeout = 0
                 repeat
@@ -148,7 +215,7 @@ local function farmAllCandyAtLocation(targetCFrame)
     end
 end
 
--- 🚀 ลูปหลัก: สลับวาร์ปไปตามสถานที่ต่างๆ
+-- 🚀 ลูปหลัก
 task.spawn(function()
     while true do
         if _G.AutoFarmActive then
@@ -160,4 +227,12 @@ task.spawn(function()
         end
         task.wait(0.5)
     end
+end)
+
+-- 🛡️ ระบบป้องกัน AFK ไม่ให้โดนเตะออกจากเกมเวลารันฟาร์มทิ้งไว้
+local vu = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
 end)
