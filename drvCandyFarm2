@@ -41,7 +41,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 185) -- 📌 ขยายความสูงเพิ่มขึ้นเพื่อให้มีพื้นที่เหลือด้านล่างพอดี ไม่ล้น
+mainFrame.Size = UDim2.new(0, 220, 0, 200) -- 📌 ขยายความสูงกรอบดำให้สูงขึ้น ป้องกันข้อความล่างตกขอบ
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -54,7 +54,7 @@ corner.Parent = mainFrame
 -- 📌 หัวข้อหลักด้านบน
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 25)
-titleLabel.Position = UDim2.new(0, 0, 0, 8)
+titleLabel.Position = UDim2.new(0, 0, 0, 10)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "🍬 Driving Empire Farm"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -65,7 +65,7 @@ titleLabel.Parent = mainFrame
 -- 📌 ปุ่มสถานะฟาร์ม (OFF / ON)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 42)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 38)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 42)
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -79,8 +79,8 @@ btnCorner.Parent = toggleButton
 
 -- 🛡️ ปุ่มสถานะ Anti-AFK (เปิด/ปิดได้)
 local afkButton = Instance.new("TextButton")
-afkButton.Size = UDim2.new(0.9, 0, 0, 35)
-afkButton.Position = UDim2.new(0.05, 0, 0, 88)
+afkButton.Size = UDim2.new(0.9, 0, 0, 38)
+afkButton.Position = UDim2.new(0.05, 0, 0, 92)
 afkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- เริ่มต้นเป็นสีเขียว (เปิดอยู่)
 afkButton.Text = "Anti-AFK: ON 🟢"
 afkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -92,10 +92,10 @@ local afkCorner = Instance.new("UICorner")
 afkCorner.CornerRadius = UDim.new(0, 6)
 afkCorner.Parent = afkButton
 
--- 📌 ข้อความ insert - show / hide UI จัดตำแหน่งให้อยู่ตรงกลางและไม่ตกขอบ
+-- 📌 ข้อความ insert - show / hide UI จัดตำแหน่งให้อยู่ตรงกลางและมีพื้นที่เหลือด้านล่างพอดีสวยงาม
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0, 20)
-subLabel.Position = UDim2.new(0, 0, 0, 134)
+subLabel.Position = UDim2.new(0, 0, 0, 145)
 subLabel.BackgroundTransparency = 1
 subLabel.Text = "insert - show / hide UI"
 subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -251,7 +251,6 @@ task.spawn(function()
     while true do
         if _G.AutoFarmActive then
             for i, pos in ipairs(locations) do
-                if not _G.AutoFnrmActive and not _G.AutoFarmActive then break end
                 if not _G.AutoFarmActive then break end
                 farmAllCandyAtLocation(CFrame.new(pos))
                 task.wait(1)
