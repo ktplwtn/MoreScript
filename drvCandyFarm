@@ -39,7 +39,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 130) -- กำหนดความสูงพอดีเป๊ะตามตัวอย่าง
+mainFrame.Size = UDim2.new(0, 220, 0, 135) -- ขยายความสูงให้พอดีกับข้อความแทรก
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -51,7 +51,7 @@ corner.Parent = mainFrame
 
 -- 📌 หัวข้อหลัก
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 25)
+titleLabel.Size = UDim2.new(1, 0, 0, 22)
 titleLabel.Position = UDim2.new(0, 0, 0, 8)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "🍬 Driving Empire Farm"
@@ -60,13 +60,13 @@ titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
--- 📌 ข้อความตามตัวอย่าง: insert show / hide UI
+-- 📌 ข้อความตามตัวอย่างที่อ้นต้องการ
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0, 15)
 subLabel.Position = UDim2.new(0, 0, 0, 32)
 subLabel.BackgroundTransparency = 1
 subLabel.Text = "insert show / hide UI"
-subLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 subLabel.TextSize = 11
 subLabel.Font = Enum.Font.GothamBold
 subLabel.Parent = mainFrame
@@ -74,7 +74,7 @@ subLabel.Parent = mainFrame
 -- 📌 ปุ่มสถานะ (OFF / ON)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 55)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 55)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 58)
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -86,7 +86,7 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
 
--- 💬 ข้อความแจ้งเตือนสถานะกลางจอตอนกด Insert หรือกดปุ่ม
+-- 💬 ข้อความแจ้งเตือนสถานะกลางจอตอนกด Insert
 local notifyLabel = Instance.new("TextLabel")
 notifyLabel.Size = UDim2.new(0, 240, 0, 35)
 notifyLabel.Position = UDim2.new(0.5, -120, 0, 15)
@@ -130,7 +130,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- 🖱️ ระบบลาก UI หลัก (กดลากตรงแถบหัวข้อ)
+-- 🖱️ ระบบลาก UI หลัก
 local dragging = false
 local mousePos, framePos
 
@@ -221,3 +221,10 @@ task.spawn(function()
         if _G.AutoFarmActive then
             for i, pos in ipairs(locations) do
                 if not _G.AutoFarmActive then break end
+                farmAllCandyAtLocation(CFrame.new(pos))
+                task.wait(1)
+            end
+        end
+        task.wait(0.5)
+    end
+end)
