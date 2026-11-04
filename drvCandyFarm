@@ -39,7 +39,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 135) -- ขยายความสูงให้พอดีกับข้อความแทรก
+mainFrame.Size = UDim2.new(0, 220, 0, 120) -- 📌 ปรับความสูงกรอบดำให้พอดีเป๊ะ ไม่ล้น
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -49,32 +49,21 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
--- 📌 หัวข้อหลัก
+-- 📌 หัวข้อหลักด้านบน
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 22)
-titleLabel.Position = UDim2.new(0, 0, 0, 8)
+titleLabel.Position = UDim2.new(0, 0, 0, 6)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "🍬 Driving Empire Farm 🍬"
+titleLabel.Text = "🍬 Driving Empire Farm"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
--- 📌 ข้อความตามตัวอย่างที่อ้นต้องการ
-local subLabel = Instance.new("TextLabel")
-subLabel.Size = UDim2.new(1, 0, 0, 15)
-subLabel.Position = UDim2.new(0, 0, 0, 32)
-subLabel.BackgroundTransparency = 1
-subLabel.Text = "insert show / hide UI"
-subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-subLabel.TextSize = 11
-subLabel.Font = Enum.Font.GothamBold
-subLabel.Parent = mainFrame
-
 -- 📌 ปุ่มสถานะ (OFF / ON)
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.9, 0, 0, 55)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 58)
+toggleButton.Size = UDim2.new(0.9, 0, 0, 45)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 32)
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -85,6 +74,17 @@ toggleButton.Parent = mainFrame
 local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
+
+-- 📌 ข้อความ insert - show / hide UI ไว้ด้านล่างแบบพอดี
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(1, 0, 0, 20)
+subLabel.Position = UDim2.new(0, 0, 0, 85)
+subLabel.BackgroundTransparency = 1
+subLabel.Text = "insert - show / hide UI"
+subLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+subLabel.TextSize = 11
+subLabel.Font = Enum.Font.GothamBold
+subLabel.Parent = mainFrame
 
 -- 💬 ข้อความแจ้งเตือนสถานะกลางจอตอนกด Insert
 local notifyLabel = Instance.new("TextLabel")
