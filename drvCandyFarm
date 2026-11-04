@@ -6,7 +6,7 @@ local player = Players.LocalPlayer
 local candyFolder = workspace:WaitForChild("CollectibleSpawner")
 
 -- 📌 ตัวแปรควบคุมเปิด/ปิด (เริ่มทำงานทันที)
-_G.AutoFarmActive = true
+_G.AutoFarmActive = false
 
 -- 📌 รวมรายการพิกัดสถานที่ต่างๆ ของอ้น (โค้ดเดิมแท้ๆ)
 local locations = {
