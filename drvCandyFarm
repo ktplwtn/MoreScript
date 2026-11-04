@@ -39,7 +39,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 125) -- ขยายความสูงขึ้นนิดนึงเพื่อให้พอดีกับข้อความย่อย
+mainFrame.Size = UDim2.new(0, 220, 0, 135) -- 📌 ขยายความสูงกรอบให้พอดี
 mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
@@ -51,7 +51,7 @@ corner.Parent = mainFrame
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 22)
-titleLabel.Position = UDim2.new(0, 0, 0, 5)
+titleLabel.Position = UDim2.new(0, 0, 0, 8)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "🍬 Driving Empire Farm"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -59,10 +59,10 @@ titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = mainFrame
 
--- 📌 เพิ่มข้อความตัวเล็กบอกวิธีซ่อน/แสดง UI ใต้หัวข้อ
+-- 📌 ข้อความตัวเล็กบอกวิธีซ่อน/แสดง UI ใต้หัวข้อ
 local subLabel = Instance.new("TextLabel")
 subLabel.Size = UDim2.new(1, 0, 0, 15)
-subLabel.Position = UDim2.new(0, 0, 0, 24)
+subLabel.Position = UDim2.new(0, 0, 0, 30)
 subLabel.BackgroundTransparency = 1
 subLabel.Text = "[ Press 'Insert' to Hide / Show ]"
 subLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
@@ -115,8 +115,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.9, 0, 0, 50)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 48) -- ขยับปุ่มลงมานิดนึงเพื่อหลบข้อความย่อย
+toggleButton.Size = UDim2.new(0.9, 0, 0, 55)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 55) -- 📌 ขยับปุ่มสถานะลงมาด้านล่างไม่ให้ทับข้อความ
 -- 📌 บังคับค่าเริ่มต้นหน้าตาปุ่มเป็นสีแดง (OFF) ตั้งแต่แรก
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 toggleButton.Text = "Status: OFF 🔴"
@@ -129,7 +129,7 @@ local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = toggleButton
 
--- 🖱️ ระบบลาก UI หลัก (กดลากตรงแถบหัวข้อได้ปกติ)
+-- 🖱️ ระบบลาก UI หลัก
 local dragging = false
 local mousePos, framePos
 
@@ -211,3 +211,19 @@ local function farmAllCandyAtLocation(targetCFrame)
         end
 
         task.wait(0.5)
+    end
+end
+
+-- 🚀 ลูปหลัก
+task.spawn(function()
+    while true do
+        if _G.AutoFarmActive then
+            for i, pos in ipairs(locations) do
+                if not _G.AutoFarmActive then break end
+                farmAllCandyAtLocation(CFrame.new(pos))
+                task.wait(1)
+            end
+        end
+        task.wait(0.5)
+    end
+end)
