@@ -1,6 +1,6 @@
 local _0xB166 = game:GetService(string.char(67,111,114,101,71,117,105))
 for _, gui in ipairs(_0xB166:GetChildren()) do
-if gui.Name ==string.char(67,97,110,100,121,70,97,114,109,85,73)then
+if gui.Name == string.char(67,97,110,100,121,70,97,114,109,85,73) then
 pcall(function()
 gui:Destroy()
 end)
@@ -10,10 +10,17 @@ local _0x0F0D = game:GetService(string.char(80,108,97,121,101,114,115))
 local _0x1395 = game:GetService(string.char(85,115,101,114,73,110,112,117,116,83,101,114,118,105,99,101))
 local _0x0A82 = game:GetService(string.char(86,105,114,116,117,97,108,73,110,112,117,116,77,97,110,97,103,101,114))
 local _0x569E = _0x0F0D.LocalPlayer
-local _0x245C = workspace:WaitForChild(string.char(67,111,108,108,101,99,116,105,98,108,101,83,112,97,119,110,101,114))_G.AutoFarmActive = false
-_G.AntiAfkActive = truelocal _0x134F = {
-Vector3.new(125, 50, -430),Vector3.new(850, 50, 1200),Vector3.new(-500, 50, -900),Vector3.new(1420, 50, 230),Vector3.new(-1650, 50, 840),Vector3.new(310, 50, 1950),Vector3.new(-920, 50, -1780),Vector3.new(1890, 50, -1250),Vector3.new(-120, 50, 2450),}local _0x1432 = Instance.new(string.char(83,99,114,101,101,110,71,117,105))
-_0x1432.Name =string.char(67,97,110,100,121,70,97,114,109,85,73)_0x1432.Parent = _0xB166
+local _0x245C = workspace:WaitForChild(string.char(67,111,108,108,101,99,116,105,98,108,101,83,112,97,119,110,101,114))
+_G.AutoFarmActive = false
+_G.AntiAfkActive = true
+local _0x134F = {
+Vector3.new(125, 50, -430), Vector3.new(850, 50, 1200), Vector3.new(-500, 50, -900),
+Vector3.new(1420, 50, 230), Vector3.new(-1650, 50, 840), Vector3.new(310, 50, 1950),
+Vector3.new(-920, 50, -1780), Vector3.new(1890, 50, -1250), Vector3.new(-120, 50, 2450)
+}
+local _0x1432 = Instance.new(string.char(83,99,114,101,101,110,71,117,105))
+_0x1432.Name = string.char(67,97,110,100,121,70,97,114,109,85,73)
+_0x1432.Parent = _0xB166
 _0x1432.ResetOnSpawn = false
 local _0x42D3 = Instance.new(string.char(70,114,97,109,101))
 _0x42D3.Size = UDim2.new(0, 220, 0, 150)
@@ -23,41 +30,50 @@ _0x42D3.BorderSizePixel = 0
 _0x42D3.Parent = _0x1432
 local _0xA6C2 = Instance.new(string.char(85,73,67,111,114,110,101,114))
 _0xA6C2.CornerRadius = UDim.new(0, 8)
-_0xA6C2.Parent = _0x42D3local _0xE72D = Instance.new(string.char(84,101,120,116,76,97,98,101,108))
+_0xA6C2.Parent = _0x42D3
+local _0xE72D = Instance.new(string.char(84,101,120,116,76,97,98,101,108))
 _0xE72D.Size = UDim2.new(1, 0, 0, 22)
 _0xE72D.Position = UDim2.new(0, 0, 0, 6)
 _0xE72D.BackgroundTransparency = 1
-_0xE72D.Text =string.char(239,191,189,239,191,189,32,68,114,105,118,105,110,103,32,69,109,112,105,114,101,32,70,97,114,109)_0xE72D.TextColor3 = Color3.fromRGB(255, 255, 255)
+_0xE72D.Text = string.char(239,191,189,239,191,189,32,68,114,105,118,105,110,103,32,69,109,112,105,114,101,32,70,97,114,109)
+_0xE72D.TextColor3 = Color3.fromRGB(255, 255, 255)
 _0xE72D.TextSize = 13
 _0xE72D.Font = Enum.Font.GothamBold
-_0xE72D.Parent = _0x42D3local _0x21C9 = Instance.new(string.char(84,101,120,116,66,117,116,116,111,110))
+_0xE72D.Parent = _0x42D3
+local _0x21C9 = Instance.new(string.char(84,101,120,116,66,117,116,116,111,110))
 _0x21C9.Size = UDim2.new(0.9, 0, 0, 35)
 _0x21C9.Position = UDim2.new(0.05, 0, 0, 32)
 _0x21C9.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-_0x21C9.Text =string.char(67,97,110,100,121,32,70,97,114,109,32,58,32,79,70,70,32,239,191,189,239,191,189)_0x21C9.TextColor3 = Color3.fromRGB(255, 255, 255)
+_0x21C9.Text = string.char(67,97,110,100,121,32,70,97,114,109,32,58,32,79,70,70,32,239,191,189,239,191,189)
+_0x21C9.TextColor3 = Color3.fromRGB(255, 255, 255)
 _0x21C9.TextSize = 12
 _0x21C9.Font = Enum.Font.GothamBold
 _0x21C9.Parent = _0x42D3
 local _0x5EA8 = Instance.new(string.char(85,73,67,111,114,110,101,114))
 _0x5EA8.CornerRadius = UDim.new(0, 6)
-_0x5EA8.Parent = _0x21C9local _0x7915 = Instance.new(string.char(84,101,120,116,66,117,116,116,111,110))
+_0x5EA8.Parent = _0x21C9
+local _0x7915 = Instance.new(string.char(84,101,120,116,66,117,116,116,111,110))
 _0x7915.Size = UDim2.new(0.9, 0, 0, 35)
 _0x7915.Position = UDim2.new(0.05, 0, 0, 72)
 _0x7915.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-_0x7915.Text =string.char(65,110,116,105,45,65,70,75,58,32,79,78,32,239,191,189,239,191,189)_0x7915.TextColor3 = Color3.fromRGB(255, 255, 255)
+_0x7915.Text = string.char(65,110,116,105,45,65,70,75,58,32,79,78,32,239,191,189,239,191,189)
+_0x7915.TextColor3 = Color3.fromRGB(255, 255, 255)
 _0x7915.TextSize = 12
 _0x7915.Font = Enum.Font.GothamBold
 _0x7915.Parent = _0x42D3
 local _0xE2AA = Instance.new(string.char(85,73,67,111,114,110,101,114))
 _0xE2AA.CornerRadius = UDim.new(0, 6)
-_0xE2AA.Parent = _0x7915local _0xE322 = Instance.new(string.char(84,101,120,116,76,97,98,101,108))
+_0xE2AA.Parent = _0x7915
+local _0xE322 = Instance.new(string.char(84,101,120,116,76,97,98,101,108))
 _0xE322.Size = UDim2.new(1, 0, 0, 20)
 _0xE322.Position = UDim2.new(0, 0, 0, 114)
 _0xE322.BackgroundTransparency = 1
-_0xE322.Text =string.char(105,110,115,101,114,116,32,45,32,115,104,111,119,32,47,32,104,105,100,101,32,85,73)_0xE322.TextColor3 = Color3.fromRGB(180, 180, 180)
+_0xE322.Text = string.char(105,110,115,101,114,116,32,45,32,115,104,111,119,32,47,32,104,105,100,101,32,85,73)
+_0xE322.TextColor3 = Color3.fromRGB(180, 180, 180)
 _0xE322.TextSize = 11
 _0xE322.Font = Enum.Font.GothamBold
-_0xE322.Parent = _0x42D3local _0x813A = Instance.new(string.char(84,101,120,116,76,97,98,101,108))
+_0xE322.Parent = _0x42D3
+local _0x813A = Instance.new(string.char(84,101,120,116,76,97,98,101,108))
 _0x813A.Size = UDim2.new(0, 240, 0, 35)
 _0x813A.Position = UDim2.new(0.5, -120, 0, 15)
 _0x813A.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -84,7 +100,8 @@ end
 _0x813A.TextTransparency = 1
 _0x813A.BackgroundTransparency = 1
 end)
-end_0x1395.InputBegan:Connect(function(input, gameProcessed)
+end
+_0x1395.InputBegan:Connect(function(input, gameProcessed)
 if input.KeyCode == Enum.KeyCode.Insert or input.KeyCode == Enum.KeyCode.RightControl then
 _0x42D3.Visible = not _0x42D3.Visible
 if _0x42D3.Visible then
@@ -93,7 +110,8 @@ else
 _0xBE40(string.char(239,191,189,239,191,189,32,85,73,32,72,105,100,100,101,110))
 end
 end
-end)local _0x65AE = false
+end)
+local _0x65AE = false
 local _0x9D06, _0xA219
 _0xE72D.InputBegan:Connect(function(input)
 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -112,28 +130,36 @@ if _0x65AE and (input.UserInputType == Enum.UserInputType.MouseMovement or input
 local _0x6B4A = input.Position - _0x9D06
 _0x42D3.Position = UDim2.new(_0xA219.X.Scale, _0xA219.X.Offset + _0x6B4A.X, _0xA219.Y.Scale, _0xA219.Y.Offset + _0x6B4A.Y)
 end
-end)_0x21C9.MouseButton1Click:Connect(function()
+end)
+_0x21C9.MouseButton1Click:Connect(function()
 _G.AutoFarmActive = not _G.AutoFarmActive
 if _G.AutoFarmActive then
 _0x21C9.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-_0x21C9.Text =string.char(67,97,110,100,121,32,70,97,114,109,32,58,32,79,78,32,239,191,189,239,191,189)_0xBE40(string.char(239,191,189,239,191,189,32,65,117,116,111,32,70,97,114,109,32,83,116,97,114,116,101,100,33))
+_0x21C9.Text = string.char(67,97,110,100,121,32,70,97,114,109,32,58,32,79,78,32,239,191,189,239,191,189)
+_0xBE40(string.char(239,191,189,239,191,189,32,65,117,116,111,32,70,97,114,109,32,83,116,97,114,116,101,100,33))
 else
 _0x21C9.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-_0x21C9.Text =string.char(67,97,110,100,121,32,70,97,114,109,32,58,32,79,70,70,32,239,191,189,239,191,189)_0xBE40(string.char(239,191,189,239,191,189,32,65,117,116,111,32,70,97,114,109,32,83,116,111,112,112,101,100,33))
+_0x21C9.Text = string.char(67,97,110,100,121,32,70,97,114,109,32,58,32,79,70,70,32,239,191,189,239,191,189)
+_0xBE40(string.char(239,191,189,239,191,189,32,65,117,116,111,32,70,97,114,109,32,83,116,111,112,112,101,100,33))
 end
-end)_0x7915.MouseButton1Click:Connect(function()
+end)
+_0x7915.MouseButton1Click:Connect(function()
 _G.AntiAfkActive = not _G.AntiAfkActive
 if _G.AntiAfkActive then
 _0x7915.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-_0x7915.Text =string.char(65,110,116,105,45,65,70,75,58,32,79,78,32,239,191,189,239,191,189)_0xBE40(string.char(239,191,189,239,191,189,239,184,143,32,65,110,116,105,45,65,70,75,32,69,110,97,98,108,101,100))
+_0x7915.Text = string.char(65,110,116,105,45,65,70,75,58,32,79,78,32,239,191,189,239,191,189)
+_0xBE40(string.char(239,191,189,239,191,189,239,184,143,32,65,110,116,105,45,65,70,75,32,69,110,97,98,108,101,100))
 else
 _0x7915.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-_0x7915.Text =string.char(65,110,116,105,45,65,70,75,58,32,79,70,70,32,239,191,189,239,191,189)_0xBE40(string.char(226,154,160,239,184,143,32,65,110,116,105,45,65,70,75,32,68,105,115,97,98,108,101,100))
+_0x7915.Text = string.char(65,110,116,105,45,65,70,75,58,32,79,70,70,32,239,191,189,239,191,189)
+_0xBE40(string.char(226,154,160,239,184,143,32,65,110,116,105,45,65,70,75,32,68,105,115,97,98,108,101,100))
 end
-end)local function _0x6F03()
+end)
+local function _0x6F03()
 local _0x3E7B = _0x569E.Character
 return _0x3E7B and _0x3E7B:FindFirstChild(string.char(72,117,109,97,110,111,105,100,82,111,111,116,80,97,114,116))
-endlocal function _0xF08C(targetCFrame)
+end
+local function _0xF08C(targetCFrame)
 local _0x9B03 = _0x6F03()
 if not _0x9B03 then return end
 _0x9B03.CFrame = targetCFrame + Vector3.new(0, 8, 0)
@@ -144,7 +170,7 @@ _0x9B03 = _0x6F03()
 if not _0x9B03 then break end
 for _, obj in ipairs(_0x245C:GetDescendants()) do
 if not _G.AutoFarmActive then break end
-if obj:IsA(string.char(77,101,115,104,80,97,114,116)) and obj.Parent then
+if obj:IsA(string.char(77,101,115,115,80,97,114,116)) and obj.Parent then
 _0xE1ED = true
 _0x9B03.CFrame = obj.CFrame + Vector3.new(0, 8, 0)
 task.wait(0.08)
@@ -161,7 +187,8 @@ break
 end
 task.wait(0.5)
 end
-endtask.spawn(function()
+end
+task.spawn(function()
 while true do
 if _G.AutoFarmActive then
 for i, pos in ipairs(_0x134F) do
@@ -172,7 +199,8 @@ end
 end
 task.wait(0.5)
 end
-end)task.spawn(function()
+end)
+task.spawn(function()
 while true do
 task.wait(60)
 if _G.AntiAfkActive then
