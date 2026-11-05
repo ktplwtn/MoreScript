@@ -1,11 +1,12 @@
 -- ==========================================
--- Driving Empire: Highway Farm (Optimized & Stable Speed)
+-- Driving Empire: Highway Farm + Anti-AFK (Optimized & Stable)
 -- ==========================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local VirtualUser = game:GetService("VirtualUser")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -64,6 +65,18 @@ local function resetPhysics(car)
     end
 end
 
+-- 🛡️ ระบบ Anti-AFK ทำงานอัตโนมัติป้องกันโดนเตะออกจากเกม
+task.spawn(function()
+    while getgenv().RunningHighwayFarm do
+        pcall(function()
+            -- จำลองการกดขยับกล้องหรือปุ่มเล็กน้อยเพื่อรีเซ็ต Idle Timer ของ Roblox
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton1(Vector2.new(500, 500))
+        end)
+        task.wait(60) -- ทำงานทุกๆ 60 วินาที
+    end
+end)
+
 -- 🖥️ สร้างปุ่ม UI ควบคุม
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HighwayFarmUI"
@@ -99,7 +112,7 @@ local function startAutoDrive()
             local car, seat = getMyCurrentCar()
 
             if not car then
-                notify("Auto Drive", "กรุณาส่งรถออกมา แล้วขึ้นไปนั่งก่อนกดเปิดครับ!")
+                notify("Auto Drive", "กรุณาเรียกออกมา ก่อนเปิดใช้งาน!")
                 AutoFarmActive = false
                 toggleButton.Text = "AUTO DRIVE: OFF"
                 toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
