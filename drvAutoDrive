@@ -1,0 +1,188 @@
+-- ==========================================
+-- Driving Empire: Highway Farm (Optimized & Stable Speed)
+-- ==========================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- 🧹 ล้าง UI เก่าทิ้งก่อนสร้างใหม่
+pcall(function()
+    if PlayerGui:FindFirstChild("HighwayFarmUI") then
+        PlayerGui.HighwayFarmUI:Destroy()
+    end
+end)
+
+getgenv().RunningHighwayFarm = false
+task.wait(0.1)
+getgenv().RunningHighwayFarm = true
+
+local AutoFarmActive = false
+
+-- ⚙️ ปรับความเร็วให้อยู่ในโซนเสถียร (เงินขึ้นชัวร์ ไม่ดีดเกินลิมิต)
+local targetSpeed = 500 
+
+-- 📍 จุดเริ่มต้น (Point A) และจุดสิ้นสุด (Point B) 
+local PointA = CFrame.new(-18855.3, 37.0, -1751.2) * CFrame.Angles(0, math.rad(27.2), 0)
+local PointB = CFrame.new(-34364.7, 33.8, -32477.5) * CFrame.Angles(0, math.rad(28.3), 0)
+
+local function notify(title, text)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", { Title = title, Text = text, Duration = 3 })
+    end)
+end
+
+local function pressKey(keyCode, state)
+    pcall(function()
+        VirtualInputManager:SendKeyEvent(state, keyCode, false, game)
+    end)
+end
+
+local function getMyCurrentCar()
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum and hum.SeatPart then
+        local seat = hum.SeatPart
+        local car = seat.Parent
+        while car and not car:IsA("Model") do car = car.Parent end
+        return car, seat
+    end
+    return nil, nil
+end
+
+local function resetPhysics(car)
+    if car and car.PrimaryPart then
+        for _, part in pairs(car:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            end
+        end
+    end
+end
+
+-- 🖥️ สร้างปุ่ม UI ควบคุม
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HighwayFarmUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 180, 0, 50)
+toggleButton.Position = UDim2.new(0.02, 0, 0.35, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 15
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Text = "AUTO DRIVE: OFF"
+toggleButton.Active = true
+toggleButton.Draggable = true
+toggleButton.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = toggleButton
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(80, 80, 80)
+stroke.Thickness = 1
+stroke.Parent = toggleButton
+
+-- ระบบขับเคลื่อนความเร็วเสถียร เงินขึ้นชัวร์
+local function startAutoDrive()
+    task.spawn(function()
+        while AutoFarmActive and getgenv().RunningHighwayFarm do
+            local car, seat = getMyCurrentCar()
+
+            if not car then
+                notify("Auto Drive", "กรุณาส่งรถออกมา แล้วขึ้นไปนั่งก่อนกดเปิดครับ!")
+                AutoFarmActive = false
+                toggleButton.Text = "AUTO DRIVE: OFF"
+                toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                break
+            end
+
+            -- 1. วาร์ปตั้งลำที่จุด A
+            resetPhysics(car)
+            car:PivotTo(PointA)
+            task.wait(0.4)
+
+            -- 2. กดคันเร่ง W ค้างไว้
+            pressKey(Enum.KeyCode.Space, false)
+            pressKey(Enum.KeyCode.S, false)
+            pressKey(Enum.KeyCode.W, true)
+
+            local primaryPart = car.PrimaryPart or seat
+            local startPos = PointA.Position
+            local endPos = PointB.Position
+            local totalDistance = (endPos - startPos).Magnitude
+            
+            local duration = totalDistance / targetSpeed
+            local startTime = tick()
+            local direction = (endPos - startPos).Unit
+
+            while AutoFarmActive and getgenv().RunningHighwayFarm do
+                local elapsed = tick() - startTime
+                local currentCar = getMyCurrentCar()
+                if not currentCar or not primaryPart then break end
+                
+                local alpha = elapsed / duration
+                if alpha >= 1 then break end
+
+                local currentPos = startPos:Lerp(endPos, alpha)
+                local lookVector = PointB.LookVector
+
+                -- ยิง Raycast จับระดับพื้นสะพานให้รถวิ่งนิ่งๆ ไม่สะดุด
+                local raycastParam = RaycastParams.new()
+                raycastParam.FilterDescendantsInstances = {car}
+                raycastParam.FilterType = Enum.RaycastFilterType.Exclude
+
+                local rayResult = workspace:Raycast(currentPos + Vector3.new(0, 15, 0), Vector3.new(0, -40, 0), raycastParam)
+                local groundY = rayResult and rayResult.Position.Y or currentPos.Y
+                local perfectPos = Vector3.new(currentPos.X, groundY + 0.15, currentPos.Z)
+
+                -- คุมความเร็วให้อยู่ในโซนปลอดภัยที่เกมคำนวณเงินให้ปกติ
+                primaryPart.AssemblyLinearVelocity = Vector3.new(direction.X * targetSpeed, primaryPart.AssemblyLinearVelocity.Y, direction.Z * targetSpeed)
+                car:PivotTo(CFrame.new(perfectPos, perfectPos + lookVector) * CFrame.Angles(0, math.rad(28.3), 0))
+                resetPhysics(currentCar)
+
+                RunService.Heartbeat:Wait()
+            end
+
+            pressKey(Enum.KeyCode.W, false)
+
+            if not AutoFarmActive or not getgenv().RunningHighwayFarm then break end
+            
+            if primaryPart then
+                primaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            end
+            task.wait(0.4)
+        end
+
+        pressKey(Enum.KeyCode.W, false)
+    end)
+end
+
+local function toggleDrive()
+    AutoFarmActive = not AutoFarmActive
+    if AutoFarmActive then
+        toggleButton.Text = "AUTO DRIVE: ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+        startAutoDrive()
+    else
+        toggleButton.Text = "AUTO DRIVE: OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(toggleDrive)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.End then
+        toggleDrive()
+    end
+end)
