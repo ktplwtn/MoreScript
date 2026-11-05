@@ -1,0 +1,181 @@
+-- ==========================================
+-- Driving Empire: Control Key Instant Snap Launch (0 - 600)
+-- ==========================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- 🧹 ล้าง UI เก่าทิ้งก่อนสร้างใหม่
+pcall(function()
+    if PlayerGui:FindFirstChild("CarTunerUI") then
+        PlayerGui.CarTunerUI:Destroy()
+    end
+end)
+
+getgenv().TunerActive = false
+getgenv().RunningCarTuner = true
+getgenv().TargetSpeed = 300 -- ความเร็วเป้าหมายที่จะพุ่งไปทันทีเมื่อกด Ctrl (ปรับสไลด์ 0 ถึง 600)
+
+local function getMyCurrentCar()
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum and hum.SeatPart then
+        local seat = hum.SeatPart
+        local car = seat.Parent
+        while car and not car:IsA("Model") do car = car.Parent end
+        return car, seat
+    end
+    return nil, nil
+end
+
+-- 🖥️ สร้าง UI แผงควบคุม
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CarTunerUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 220, 0, 130)
+mainFrame.Position = UDim2.new(0.02, 0, 0.25, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 8)
+mainCorner.Parent = mainFrame
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 200, 0, 35)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 14
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Text = "CTRL LAUNCH: OFF"
+toggleButton.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = toggleButton
+
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0, 200, 0, 25)
+speedLabel.Position = UDim2.new(0, 10, 0, 52)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+speedLabel.TextSize = 13
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.Text = "Target Speed: 300"
+speedLabel.Parent = mainFrame
+
+local sliderBg = Instance.new("TextButton")
+sliderBg.Size = UDim2.new(0, 200, 0, 12)
+sliderBg.Position = UDim2.new(0, 10, 0, 88)
+sliderBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+sliderBg.Text = ""
+sliderBg.Parent = mainFrame
+
+local sliderCorner = Instance.new("UICorner")
+sliderCorner.CornerRadius = UDim.new(0, 6)
+sliderCorner.Parent = sliderBg
+
+local sliderFill = Instance.new("Frame")
+sliderFill.Size = UDim2.new(300 / 600, 0, 1, 0)
+sliderFill.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+sliderFill.BorderSizePixel = 0
+sliderFill.Parent = sliderBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0, 6)
+fillCorner.Parent = sliderFill
+
+local dragging = false
+
+local function updateSlider(input)
+    local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+    getgenv().TargetSpeed = math.floor(pos * 600) -- สเกลปรับความเร็ว 0 ถึง 600 เต็มย่าน
+    sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+    speedLabel.Text = "Target Speed: " .. getgenv().TargetSpeed
+end
+
+sliderBg.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        updateSlider(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateSlider(input)
+    end
+end)
+
+local isCtrlPressed = false
+
+-- เปลี่ยนมาเช็คปุ่ม LeftControl แทน Shift
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.LeftControl then
+        isCtrlPressed = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftControl then
+        isCtrlPressed = false
+    end
+end)
+
+-- ระบบกด Ctrl ค้างไว้เพื่อบังคับความเร็วพุ่งไปยังเป้าหมายทันทีโดยไม่รอรอบ (W ขับขี่ปกติ 100%)
+RunService.Heartbeat:Connect(function()
+    if not getgenv().TunerActive or not getgenv().RunningCarTuner then return end
+    if not isCtrlPressed then return end
+
+    local car, seat = getMyCurrentCar()
+    if not car or not seat then return end
+
+    local primaryPart = car.PrimaryPart or seat
+    if not primaryPart or primaryPart.Anchored then return end
+
+    local currentVel = primaryPart.AssemblyLinearVelocity
+    local lookVector = primaryPart.CFrame.LookVector
+    
+    -- แปลงสเกลความเร็วให้พุ่งไปยังเป้าหมายทันทีแบบ Snap
+    local snapSpeed = getgenv().TargetSpeed * 0.85
+    local targetVelocity = (lookVector * snapSpeed) + Vector3.new(0, math.min(currentVel.Y, 0), 0)
+    
+    primaryPart.AssemblyLinearVelocity = targetVelocity
+end)
+
+local function toggleTuner()
+    getgenv().TunerActive = not getgenv().TunerActive
+    if getgenv().TunerActive then
+        toggleButton.Text = "CTRL LAUNCH: ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+    else
+        toggleButton.Text = "CTRL LAUNCH: OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        isCtrlPressed = false
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(toggleTuner)
+
+-- ใช้ปุ่ม RightControl สำหรับเปิด-ปิดเมนูสคริปต์ตามเดิม
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.RightControl then
+        toggleTuner()
+    end
+end)
