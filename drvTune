@@ -1,10 +1,11 @@
 -- ==========================================
--- Driving Empire: Control Key Instant Snap Launch (0 - 600)
+-- Driving Empire: Control Key Instant Snap Launch + Auto-Save UI Position
 -- ==========================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -18,7 +19,7 @@ end)
 
 getgenv().TunerActive = false
 getgenv().RunningCarTuner = true
-getgenv().TargetSpeed = 300 -- ความเร็วเป้าหมายที่จะพุ่งไปทันทีเมื่อกด Ctrl (ปรับสไลด์ 0 ถึง 600)
+getgenv().TargetSpeed = 300 -- ความเร็วเป้าหมายที่จะพุ่งไปทันทีเมื่อกด Ctrl
 
 local function getMyCurrentCar()
     local char = LocalPlayer.Character
@@ -32,7 +33,7 @@ local function getMyCurrentCar()
     return nil, nil
 end
 
--- 🖥️ สร้าง UI แผงควบคุม
+-- 🖥️ สร้าง UI แผงควบคุม พร้อมระบบจำตำแหน่งล่าสุด
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CarTunerUI"
 screenGui.ResetOnSpawn = false
@@ -40,7 +41,28 @@ screenGui.Parent = PlayerGui
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 220, 0, 130)
-mainFrame.Position = UDim2.new(0.02, 0, 0.25, 0)
+
+-- 💾 ไฟล์สำหรับบันทึกตำแหน่ง UI
+local saveFileName = "CarTunerUIPos.json"
+local defaultPosition = UDim2.new(0.02, 0, 0.25, 0)
+
+pcall(function()
+    if readfile and isfile and isfile(saveFileName) then
+        local data = HttpService:JSONDecode(readfile(saveFileName))
+        if data and data.X and data.Y then
+            mainFrame.Position = UDim2.new(data.X.Scale, data.X.Offset, data.Y.Scale, data.Y.Offset)
+        else
+            mainFrame.Position = defaultPosition
+        end
+    else
+        mainFrame.Position = defaultPosition
+    end
+end)
+
+if mainFrame.Position == UDim2.new(0, 0, 0, 0) then
+    mainFrame.Position = defaultPosition
+end
+
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.Active = true
 mainFrame.Draggable = true
@@ -49,6 +71,22 @@ mainFrame.Parent = screenGui
 local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 8)
 mainCorner.Parent = mainFrame
+
+-- 💾 บันทึกตำแหน่งอัตโนมัติเมื่อลากหน้าต่างวางเสร็จ
+mainFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        pcall(function()
+            if writefile then
+                local pos = mainFrame.Position
+                local data = {
+                    X = { Scale = pos.X.Scale, Offset = pos.X.Offset },
+                    Y = { Scale = pos.Y.Scale, Offset = pos.Y.Offset }
+                }
+                writefile(saveFileName, HttpService:JSONEncode(data))
+            end
+        end)
+    end
+end)
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 200, 0, 35)
@@ -99,7 +137,7 @@ local dragging = false
 
 local function updateSlider(input)
     local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
-    getgenv().TargetSpeed = math.floor(pos * 600) -- สเกลปรับความเร็ว 0 ถึง 600 เต็มย่าน
+    getgenv().TargetSpeed = math.floor(pos * 600)
     sliderFill.Size = UDim2.new(pos, 0, 1, 0)
     speedLabel.Text = "Target Speed: " .. getgenv().TargetSpeed
 end
@@ -125,7 +163,6 @@ end)
 
 local isCtrlPressed = false
 
--- เปลี่ยนมาเช็คปุ่ม LeftControl แทน Shift
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.LeftControl then
         isCtrlPressed = true
@@ -138,7 +175,6 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- ระบบกด Ctrl ค้างไว้เพื่อบังคับความเร็วพุ่งไปยังเป้าหมายทันทีโดยไม่รอรอบ (W ขับขี่ปกติ 100%)
 RunService.Heartbeat:Connect(function()
     if not getgenv().TunerActive or not getgenv().RunningCarTuner then return end
     if not isCtrlPressed then return end
@@ -152,7 +188,6 @@ RunService.Heartbeat:Connect(function()
     local currentVel = primaryPart.AssemblyLinearVelocity
     local lookVector = primaryPart.CFrame.LookVector
     
-    -- แปลงสเกลความเร็วให้พุ่งไปยังเป้าหมายทันทีแบบ Snap
     local snapSpeed = getgenv().TargetSpeed * 0.85
     local targetVelocity = (lookVector * snapSpeed) + Vector3.new(0, math.min(currentVel.Y, 0), 0)
     
@@ -173,7 +208,6 @@ end
 
 toggleButton.MouseButton1Click:Connect(toggleTuner)
 
--- ใช้ปุ่ม RightControl สำหรับเปิด-ปิดเมนูสคริปต์ตามเดิม
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightControl then
         toggleTuner()
