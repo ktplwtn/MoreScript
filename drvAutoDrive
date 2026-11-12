@@ -1,5 +1,5 @@
 -- ==========================================
--- Driving Empire: Highway Farm + Anti-AFK (Optimized & Stable)
+-- Driving Empire: Highway Farm + Anti-AFK + Auto-Save UI Position
 -- ==========================================
 
 local Players = game:GetService("Players")
@@ -7,6 +7,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local VirtualUser = game:GetService("VirtualUser")
+local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -27,9 +28,9 @@ local AutoFarmActive = false
 -- ⚙️ ปรับความเร็วให้อยู่ในโซนเสถียร (เงินขึ้นชัวร์ ไม่ดีดเกินลิมิต)
 local targetSpeed = 500 
 
--- 📍 จุดเริ่มต้น (Point A) และจุดสิ้นสุด (Point B) 
-local PointA = CFrame.new(-18855.3, 37.0, -1751.2) * CFrame.Angles(0, math.rad(27.2), 0)
-local PointB = CFrame.new(-34364.7, 33.8, -32477.5) * CFrame.Angles(0, math.rad(28.3), 0)
+-- 📍 จุดเริ่มต้น (Point A) และจุดสิ้นสุด (Point B) พร้อมปรับมุมองศาให้ตรงล็อกกลางเลน
+local PointA = CFrame.new(-18855.3, 37.0, -1751.2) * CFrame.Angles(0, math.rad(28.1), 0)
+local PointB = CFrame.new(-34364.7, 33.8, -32477.5) * CFrame.Angles(0, math.rad(28.1), 0)
 
 local function notify(title, text)
     pcall(function()
@@ -69,15 +70,14 @@ end
 task.spawn(function()
     while getgenv().RunningHighwayFarm do
         pcall(function()
-            -- จำลองการกดขยับกล้องหรือปุ่มเล็กน้อยเพื่อรีเซ็ต Idle Timer ของ Roblox
             VirtualUser:CaptureController()
             VirtualUser:ClickButton1(Vector2.new(500, 500))
         end)
-        task.wait(60) -- ทำงานทุกๆ 60 วินาที
+        task.wait(60)
     end
 end)
 
--- 🖥️ สร้างปุ่ม UI ควบคุม
+-- 🖥️ สร้างปุ่ม UI ควบคุม พร้อมระบบจำตำแหน่งล่าสุด
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HighwayFarmUI"
 screenGui.ResetOnSpawn = false
@@ -85,11 +85,32 @@ screenGui.Parent = PlayerGui
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
-toggleButton.Size = UDim2.new(0, 180, 0, 50)
-toggleButton.Position = UDim2.new(0.02, 0, 0.35, 0)
+toggleButton.Size = UDim2.new(0, 160, 0, 40)
+
+-- 💾 โหลดตำแหน่งที่เคยลากวางไว้ล่าสุด
+local saveFileName = "HighwayFarmUIPos.json"
+local defaultPosition = UDim2.new(0.015, 0, 0.22, 0)
+
+pcall(function()
+    if readfile and isfile and isfile(saveFileName) then
+        local data = HttpService:JSONDecode(readfile(saveFileName))
+        if data and data.X and data.Y then
+            toggleButton.Position = UDim2.new(data.X.Scale, data.X.Offset, data.Y.Scale, data.Y.Offset)
+        else
+            toggleButton.Position = defaultPosition
+        end
+    else
+        toggleButton.Position = defaultPosition
+    end
+end)
+
+if toggleButton.Position == UDim2.new(0, 0, 0, 0) then
+    toggleButton.Position = defaultPosition
+end
+
 toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 15
+toggleButton.TextSize = 14
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "AUTO DRIVE: OFF"
 toggleButton.Active = true
@@ -105,14 +126,28 @@ stroke.Color = Color3.fromRGB(80, 80, 80)
 stroke.Thickness = 1
 stroke.Parent = toggleButton
 
--- ระบบขับเคลื่อนความเร็วเสถียร เงินขึ้นชัวร์
+-- 💾 บันทึกตำแหน่งอัตโนมัติเมื่อปล่อยเมาส์จากการลากปุ่ม
+toggleButton.MouseButton1Up:Connect(function()
+    pcall(function()
+        if writefile then
+            local pos = toggleButton.Position
+            local data = {
+                X = { Scale = pos.X.Scale, Offset = pos.X.Offset },
+                Y = { Scale = pos.Y.Scale, Offset = pos.Y.Offset }
+            }
+            writefile(saveFileName, HttpService:JSONEncode(data))
+        end
+    end)
+end)
+
+-- 🚗 ระบบขับเคลื่อนความเร็วเสถียร
 local function startAutoDrive()
     task.spawn(function()
         while AutoFarmActive and getgenv().RunningHighwayFarm do
             local car, seat = getMyCurrentCar()
 
             if not car then
-                notify("Auto Drive", "กรุณาเรียกออกมา ก่อนเปิดใช้งาน!")
+                notify("Auto Drive", "กรุณาขึ้นรถก่อนเปิดใช้งาน!")
                 AutoFarmActive = false
                 toggleButton.Text = "AUTO DRIVE: OFF"
                 toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -147,9 +182,9 @@ local function startAutoDrive()
                 if alpha >= 1 then break end
 
                 local currentPos = startPos:Lerp(endPos, alpha)
-                local lookVector = PointB.LookVector
+                local lookVector = (endPos - startPos).Unit
 
-                -- ยิง Raycast จับระดับพื้นสะพานให้รถวิ่งนิ่งๆ ไม่สะดุด
+                -- ยิง Raycast จับระดับพื้นสะพานให้รถวิ่งแนบสนิท
                 local raycastParam = RaycastParams.new()
                 raycastParam.FilterDescendantsInstances = {car}
                 raycastParam.FilterType = Enum.RaycastFilterType.Exclude
@@ -158,9 +193,9 @@ local function startAutoDrive()
                 local groundY = rayResult and rayResult.Position.Y or currentPos.Y
                 local perfectPos = Vector3.new(currentPos.X, groundY + 0.15, currentPos.Z)
 
-                -- คุมความเร็วให้อยู่ในโซนปลอดภัยที่เกมคำนวณเงินให้ปกติ
+                -- ล็อกความเร็วและบังคับมุมองศาให้อยู่กลางเลน
                 primaryPart.AssemblyLinearVelocity = Vector3.new(direction.X * targetSpeed, primaryPart.AssemblyLinearVelocity.Y, direction.Z * targetSpeed)
-                car:PivotTo(CFrame.new(perfectPos, perfectPos + lookVector) * CFrame.Angles(0, math.rad(28.3), 0))
+                car:PivotTo(CFrame.new(perfectPos, perfectPos + lookVector) * CFrame.Angles(0, math.rad(28.1), 0))
                 resetPhysics(currentCar)
 
                 RunService.Heartbeat:Wait()
