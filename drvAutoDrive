@@ -1,48 +1,28 @@
 -- ==========================================
--- Driving Empire: Highway Farm + Anti-AFK + Auto-Save UI Position
+-- Driving Empire: Control Key Instant Snap Launch + Auto-Save UI Position (Fixed Crash)
 -- ==========================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local VirtualUser = game:GetService("VirtualUser")
 local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- 🧹 ล้าง UI เก่าทิ้งก่อนสร้างใหม่
+-- 🧹 1. ป้องกันลูปเก่าค้าง & ล้าง UI เก่าทิ้งก่อนสร้างใหม่เพื่อไม่ให้กินแรม
+getgenv().RunningCarTuner = false
+task.wait(0.1)
+getgenv().RunningCarTuner = true
+getgenv().TunerActive = false
+
 pcall(function()
-    if PlayerGui:FindFirstChild("HighwayFarmUI") then
-        PlayerGui.HighwayFarmUI:Destroy()
+    if PlayerGui:FindFirstChild("CarTunerUI") then
+        PlayerGui.CarTunerUI:Destroy()
     end
 end)
 
-getgenv().RunningHighwayFarm = false
-task.wait(0.1)
-getgenv().RunningHighwayFarm = true
-
-local AutoFarmActive = false
-
--- ⚙️ ปรับความเร็วให้อยู่ในโซนเสถียร (เงินขึ้นชัวร์ ไม่ดีดเกินลิมิต)
-local targetSpeed = 500 
-
--- 📍 จุดเริ่มต้น (Point A) และจุดสิ้นสุด (Point B) พร้อมปรับมุมองศาให้ตรงล็อกกลางเลน
-local PointA = CFrame.new(-18855.3, 37.0, -1751.2) * CFrame.Angles(0, math.rad(28.1), 0)
-local PointB = CFrame.new(-34364.7, 33.8, -32477.5) * CFrame.Angles(0, math.rad(28.1), 0)
-
-local function notify(title, text)
-    pcall(function()
-        game:GetService("StarterGui"):SetCore("SendNotification", { Title = title, Text = text, Duration = 3 })
-    end)
-end
-
-local function pressKey(keyCode, state)
-    pcall(function()
-        VirtualInputManager:SendKeyEvent(state, keyCode, false, game)
-    end)
-end
+getgenv().TargetSpeed = 300 -- ความเร็วเป้าหมายที่จะพุ่งไปทันทีเมื่อกด Ctrl
 
 local function getMyCurrentCar()
     local char = LocalPlayer.Character
@@ -56,181 +36,183 @@ local function getMyCurrentCar()
     return nil, nil
 end
 
-local function resetPhysics(car)
-    if car and car.PrimaryPart then
-        for _, part in pairs(car:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-            end
-        end
-    end
-end
-
--- 🛡️ ระบบ Anti-AFK ทำงานอัตโนมัติป้องกันโดนเตะออกจากเกม
-task.spawn(function()
-    while getgenv().RunningHighwayFarm do
-        pcall(function()
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton1(Vector2.new(500, 500))
-        end)
-        task.wait(60)
-    end
-end)
-
--- 🖥️ สร้างปุ่ม UI ควบคุม พร้อมระบบจำตำแหน่งล่าสุด
+-- 🖥️ สร้าง UI แผงควบคุม พร้อมระบบจำตำแหน่งล่าสุด
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "HighwayFarmUI"
+screenGui.Name = "CarTunerUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
 
-local toggleButton = Instance.new("TextButton")
-toggleButton.Name = "ToggleButton"
-toggleButton.Size = UDim2.new(0, 160, 0, 40)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 220, 0, 130)
 
--- 💾 โหลดตำแหน่งที่เคยลากวางไว้ล่าสุด
-local saveFileName = "HighwayFarmUIPos.json"
-local defaultPosition = UDim2.new(0.015, 0, 0.22, 0)
+-- 💾 ไฟล์สำหรับบันทึกตำแหน่ง UI (ปลอดภัยต่อ Executor ที่ไม่รองรับระบบไฟล์)
+local saveFileName = "CarTunerUIPos.json"
+local defaultPosition = UDim2.new(0.02, 0, 0.25, 0)
 
 pcall(function()
-    if readfile and isfile and isfile(saveFileName) then
-        local data = HttpService:JSONDecode(readfile(saveFileName))
-        if data and data.X and data.Y then
-            toggleButton.Position = UDim2.new(data.X.Scale, data.X.Offset, data.Y.Scale, data.Y.Offset)
+    if writefile and readfile and isfile and isfile(saveFileName) then
+        local success, decoded = pcall(function()
+            return HttpService:JSONDecode(readfile(saveFileName))
+        end)
+        if success and decoded and decoded.X and decoded.Y then
+            mainFrame.Position = UDim2.new(decoded.X.Scale, decoded.X.Offset, decoded.Y.Scale, decoded.Y.Offset)
         else
-            toggleButton.Position = defaultPosition
+            mainFrame.Position = defaultPosition
         end
     else
-        toggleButton.Position = defaultPosition
+        mainFrame.Position = defaultPosition
     end
 end)
 
-if toggleButton.Position == UDim2.new(0, 0, 0, 0) then
-    toggleButton.Position = defaultPosition
-end
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
 
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 8)
+mainCorner.Parent = mainFrame
+
+-- 💾 บันทึกตำแหน่งอัตโนมัติเมื่อลากหน้าต่างวางเสร็จ (ครอบ pcall ป้องกัน error)
+mainFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        pcall(function()
+            if writefile then
+                local pos = mainFrame.Position
+                local data = {
+                    X = { Scale = pos.X.Scale, Offset = pos.X.Offset },
+                    Y = { Scale = pos.Y.Scale, Offset = pos.Y.Offset }
+                }
+                writefile(saveFileName, HttpService:JSONEncode(data))
+            end
+        end)
+    end
+end)
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 200, 0, 35)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
 toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.TextSize = 14
 toggleButton.Font = Enum.Font.GothamBold
-toggleButton.Text = "AUTO DRIVE: OFF"
-toggleButton.Active = true
-toggleButton.Draggable = true
-toggleButton.Parent = screenGui
+toggleButton.Text = "CTRL LAUNCH: OFF"
+toggleButton.Parent = mainFrame
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = toggleButton
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = toggleButton
 
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(80, 80, 80)
-stroke.Thickness = 1
-stroke.Parent = toggleButton
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0, 200, 0, 25)
+speedLabel.Position = UDim2.new(0, 10, 0, 52)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+speedLabel.TextSize = 13
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.Text = "Target Speed: 300"
+speedLabel.Parent = mainFrame
 
--- 💾 บันทึกตำแหน่งอัตโนมัติเมื่อปล่อยเมาส์จากการลากปุ่ม
-toggleButton.MouseButton1Up:Connect(function()
-    pcall(function()
-        if writefile then
-            local pos = toggleButton.Position
-            local data = {
-                X = { Scale = pos.X.Scale, Offset = pos.X.Offset },
-                Y = { Scale = pos.Y.Scale, Offset = pos.Y.Offset }
-            }
-            writefile(saveFileName, HttpService:JSONEncode(data))
-        end
-    end)
-end)
+local sliderBg = Instance.new("TextButton")
+sliderBg.Size = UDim2.new(0, 200, 0, 12)
+sliderBg.Position = UDim2.new(0, 10, 0, 88)
+sliderBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+sliderBg.Text = ""
+sliderBg.Parent = mainFrame
 
--- 🚗 ระบบขับเคลื่อนความเร็วเสถียร
-local function startAutoDrive()
-    task.spawn(function()
-        while AutoFarmActive and getgenv().RunningHighwayFarm do
-            local car, seat = getMyCurrentCar()
+local sliderCorner = Instance.new("UICorner")
+sliderCorner.CornerRadius = UDim.new(0, 6)
+sliderCorner.Parent = sliderBg
 
-            if not car then
-                notify("Auto Drive", "กรุณาขึ้นรถก่อนเปิดใช้งาน!")
-                AutoFarmActive = false
-                toggleButton.Text = "AUTO DRIVE: OFF"
-                toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-                break
-            end
+local sliderFill = Instance.new("Frame")
+sliderFill.Size = UDim2.new(300 / 600, 0, 1, 0)
+sliderFill.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+sliderFill.BorderSizePixel = 0
+sliderFill.Parent = sliderBg
 
-            -- 1. วาร์ปตั้งลำที่จุด A
-            resetPhysics(car)
-            car:PivotTo(PointA)
-            task.wait(0.4)
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0, 6)
+fillCorner.Parent = sliderFill
 
-            -- 2. กดคันเร่ง W ค้างไว้
-            pressKey(Enum.KeyCode.Space, false)
-            pressKey(Enum.KeyCode.S, false)
-            pressKey(Enum.KeyCode.W, true)
+local dragging = false
 
-            local primaryPart = car.PrimaryPart or seat
-            local startPos = PointA.Position
-            local endPos = PointB.Position
-            local totalDistance = (endPos - startPos).Magnitude
-            
-            local duration = totalDistance / targetSpeed
-            local startTime = tick()
-            local direction = (endPos - startPos).Unit
-
-            while AutoFarmActive and getgenv().RunningHighwayFarm do
-                local elapsed = tick() - startTime
-                local currentCar = getMyCurrentCar()
-                if not currentCar or not primaryPart then break end
-                
-                local alpha = elapsed / duration
-                if alpha >= 1 then break end
-
-                local currentPos = startPos:Lerp(endPos, alpha)
-                local lookVector = (endPos - startPos).Unit
-
-                -- ยิง Raycast จับระดับพื้นสะพานให้รถวิ่งแนบสนิท
-                local raycastParam = RaycastParams.new()
-                raycastParam.FilterDescendantsInstances = {car}
-                raycastParam.FilterType = Enum.RaycastFilterType.Exclude
-
-                local rayResult = workspace:Raycast(currentPos + Vector3.new(0, 15, 0), Vector3.new(0, -40, 0), raycastParam)
-                local groundY = rayResult and rayResult.Position.Y or currentPos.Y
-                local perfectPos = Vector3.new(currentPos.X, groundY + 0.15, currentPos.Z)
-
-                -- ล็อกความเร็วและบังคับมุมองศาให้อยู่กลางเลน
-                primaryPart.AssemblyLinearVelocity = Vector3.new(direction.X * targetSpeed, primaryPart.AssemblyLinearVelocity.Y, direction.Z * targetSpeed)
-                car:PivotTo(CFrame.new(perfectPos, perfectPos + lookVector) * CFrame.Angles(0, math.rad(28.1), 0))
-                resetPhysics(currentCar)
-
-                RunService.Heartbeat:Wait()
-            end
-
-            pressKey(Enum.KeyCode.W, false)
-
-            if not AutoFarmActive or not getgenv().RunningHighwayFarm then break end
-            
-            if primaryPart then
-                primaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-            end
-            task.wait(0.4)
-        end
-
-        pressKey(Enum.KeyCode.W, false)
-    end)
+local function updateSlider(input)
+    local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+    getgenv().TargetSpeed = math.floor(pos * 600)
+    sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+    speedLabel.Text = "Target Speed: " .. getgenv().TargetSpeed
 end
 
-local function toggleDrive()
-    AutoFarmActive = not AutoFarmActive
-    if AutoFarmActive then
-        toggleButton.Text = "AUTO DRIVE: ON"
+sliderBg.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        updateSlider(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateSlider(input)
+    end
+end)
+
+local isCtrlPressed = false
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.LeftControl then
+        isCtrlPressed = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftControl then
+        isCtrlPressed = false
+    end
+end)
+
+-- ⚙️ ระบบคำนวณความเร็ว (เพิ่มเงื่อนไขเช็คสถานะการทำงานเพื่อกันเกมกระตุกและหลุด)
+RunService.Heartbeat:Connect(function()
+    if not getgenv().RunningCarTuner then return end
+    if not getgenv().TunerActive then return end
+    if not isCtrlPressed then return end
+
+    local car, seat = getMyCurrentCar()
+    if not car or not seat then return end
+
+    local primaryPart = car.PrimaryPart or seat
+    if not primaryPart or primaryPart.Anchored then return end
+
+    local currentVel = primaryPart.AssemblyLinearVelocity
+    local lookVector = primaryPart.CFrame.LookVector
+    
+    local snapSpeed = getgenv().TargetSpeed * 0.85
+    local targetVelocity = (lookVector * snapSpeed) + Vector3.new(0, math.min(currentVel.Y, 0), 0)
+    
+    primaryPart.AssemblyLinearVelocity = targetVelocity
+end)
+
+local function toggleTuner()
+    getgenv().TunerActive = not getgenv().TunerActive
+    if getgenv().TunerActive then
+        toggleButton.Text = "CTRL LAUNCH: ON"
         toggleButton.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-        startAutoDrive()
     else
-        toggleButton.Text = "AUTO DRIVE: OFF"
+        toggleButton.Text = "CTRL LAUNCH: OFF"
         toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        isCtrlPressed = false
     end
 end
 
-toggleButton.MouseButton1Click:Connect(toggleDrive)
+toggleButton.MouseButton1Click:Connect(toggleTuner)
 
 UserInputService.InputBegan:Connect(function(input, gp)
-    if not gp and input.KeyCode == Enum.KeyCode.End then
-        toggleDrive()
+    if not gp and input.KeyCode == Enum.KeyCode.RightControl then
+        toggleTuner()
     end
 end)
